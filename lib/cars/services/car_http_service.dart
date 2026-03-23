@@ -69,4 +69,32 @@ class CarHttpService {
       throw Exception('Error ${response.statusCode}: ${response.body}');
     }
   }
+
+
+  Future<List<CarsModel>> getCarsByFilter(String? make, String? model) async {
+  final Map<String, String> queryParams = {};
+
+  // Solo añadimos los parámetros si no son nulos ni están vacíos
+  if (make != null && make.isNotEmpty) {
+    queryParams['make'] = make;
+  }
+  if (model != null && model.isNotEmpty) {
+    queryParams['model'] = model;
+  }
+
+  final url = _buildUri('/v1/cars/search', queryParams);
+
+  try {
+    final response = await http.get(url).timeout(const Duration(seconds: 10));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((json) => CarsModel.fromMapToCarObject(json)).toList();
+    } else {
+      throw Exception('Error en la búsqueda: ${response.statusCode}');
+    }
+  } catch (e) {
+    throw Exception('Error de conexión o timeout: $e');
+  }
+}
 }
